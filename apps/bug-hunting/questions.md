@@ -92,9 +92,9 @@ Please answer the following questions about the bugs you identified and fixed:
 
    * Much in the same vein as my Todo types, I added an enums file that I could leverage across different components (TodoList, App.tsx). If there are *many* options I have issues with enums, but in this instance it was pretty convenient with only a few (all, active, completed).
 
-   * I added an explicit types file, so we could reuse the Todo types. I generally have a discussion with the team surrounding *when* we should include simple types in the file(s) as opposed to having dedicated files.
+   * I added an explicit types file, so we could reuse the Todo types and enum. I generally have a discussion with the team surrounding *when* we should include simple types in the file(s) as opposed to having dedicated files.
 
-   * I have modified filteredTodos to useMemo, so it only re-renders when its dependencies change. 
+   * I have added some perfomrance enhancements via useMemo: so it only re-renders when its dependencies change. 
 
    * I modified how the toggleTodo function was done, as it was doing something very similar to how addTodo and it was modifying state directly. It didnt seem to cause any visible issues, but better to be safe.
 
@@ -104,6 +104,7 @@ Please answer the following questions about the bugs you identified and fixed:
 
    * Ideally the only time you would find yourself in a scenario like this: where **many** errors are showing up concurrently is when you have recently decided to implement TS across your project. To prevent such issues, implement TypeScript from the start of a project or migrate incrementally, one component at a time. 
    Strongly typing everything is ideal -- no any.
+
    * Having explicit or verbal 'contracts' with the team implementing the API can also do wonders, as you can agree on certain aspects (eg. how the ids will be generated).
 
 
