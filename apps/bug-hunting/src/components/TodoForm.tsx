@@ -1,10 +1,22 @@
 import { useState } from 'react'
 
-const TodoForm = ({ onAdd }) => {
-  const [input, setInput] = useState(0)
+type TodoFormProps = {
+  onAdd: (input: string) => void
+}
 
-  const handleSubmit = (e) => {
+const TodoForm = ({ onAdd }: TodoFormProps) => {
+  const [input, setInput] = useState<string>('')
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     onAdd(input)
+    
+    setInput('')
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
   }
 
   return (
@@ -12,7 +24,7 @@ const TodoForm = ({ onAdd }) => {
       <input
         type="text"
         value={input}
-        onChange={setInput(e.target.value)}
+        onChange={handleChange}
         placeholder="Add a new todo"
       />
       <button type="submit">Add Todo</button>

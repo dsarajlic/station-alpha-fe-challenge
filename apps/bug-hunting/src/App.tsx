@@ -1,63 +1,61 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import './App.css'
 import TodoList from './components/TodoList'
 import TodoForm from './components/TodoForm'
 import TodoFilter from './components/TodoFilter'
+import { Todo, Filter } from './types/todo.types'
 
 const App = () => {
-  const [todos, setTodos] = useState(null)
-  const [filter, setFilter] = useState()
-  
-  const addTodo = (text) => {
-    todos.push({ text, completed: false })
-    setTodos(todos)
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [filter, setFilter] = useState<Filter>(Filter.All)
+
+  const addTodo = (text: string) => {
+    const newTodo = { text, completed: false, id: Date.now().toString() }
+    setTodos([...todos, newTodo])
   }
-  
-  const toggleTodo = (id) => {
-    const updatedTodos = todos.map(todo => {
-      if (todo.id == id) {
-        todo.completed = !todo.completed
-        return todo
-      }
-      return todo
-    })
-    setTodos(updatedTodos)
+
+  const toggleTodo = (id: string) => {
+    setTodos(todos.map(todo =>
+      todo.id === id
+        ? { ...todo, completed: !todo.completed }
+        : todo
+    ))
   }
-  
-  const deleteTodo = () => {
+
+  const deleteTodo = (id: string) => {
     const remainingTodos = todos.filter(todo => {
       return todo.id !== id
     })
     setTodos(remainingTodos)
   }
-  
-  const filteredTodos = () => {
-    if (filter === 'active') {
+
+  const filteredTodos = useMemo(() => {
+    if (filter === Filter.Active) {
       return todos.filter(todo => !todo.completed)
-    } else if (filter === 'completed') {
+    } else if (filter === Filter.Completed) {
       return todos.filter(todo => todo.completed)
     }
     return todos
-  }
-  
+  }, [todos, filter])
+
   function clearCompleted() {
     const activeTodos = todos.filter(todo => !todo.completed)
     setTodos(activeTodos)
   }
-  
+
   return (
     <div className="app">
       <h1>Todo App</h1>
-      
-      <TodoForm />
-      
-      <TodoList 
-        todos={filteredTodos()} 
-        onToggle={toggleTodo} 
-        onDelete={deleteTodo} 
+
+      <TodoForm onAdd={addTodo} />
+
+      <TodoList
+        todos={filteredTodos}
+        onToggle={toggleTodo}
+        onDelete={deleteTodo}
       />
-      
-      <TodoFilter filter={filter} onClearCompleted={clearCompleted} />
+
+      <TodoFilter filter={filter} onClearCompleted={clearCompleted} onFilter={setFilter} />
     </div>
   )
 }
