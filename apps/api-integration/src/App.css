@@ -72,6 +72,12 @@
   gap: 2rem;
 }
 
+@media (max-width: 768px) {
+  .app-content {
+    display: block;
+  }
+}
+
 @media (min-width: 768px) {
   .app-content {
     grid-template-columns: minmax(300px, 1fr) 2fr;
@@ -123,6 +129,7 @@
 
 .api-info li {
   margin-bottom: 0.5rem;
+  list-style-type: none;
 }
 
 .api-info a {
@@ -200,9 +207,21 @@
   grid-template-columns: 1fr;
 }
 
-@media (min-width: 768px) {
+.forecast {
+  overflow: auto;
+  min-width: 380px;
+}
+
+
+@media (min-width: 1264px) {
   .weather-content {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1263px) {
+  .weather-content {
+    grid-template-columns: repeat(1, 1fr);
   }
 }
 

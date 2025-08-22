@@ -10,39 +10,45 @@ interface SearchBarProps {
 
 const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarProps) => {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [query]);
+
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (query.length < 3) {
+      if (debouncedQuery.length < 3) {
         setSuggestions([]);
+        setIsSearching(false);
         return;
       }
 
+      setIsSearching(true);
+
       try {
-        // TODO: Implement fetching location suggestions
-        // const results = await searchLocations(query);
-        // setSuggestions(results);
-        
-        // Placeholder suggestions for demonstration
-        setSuggestions([
-          { id: 1, name: 'London, UK' },
-          { id: 2, name: 'New York, US' },
-          { id: 3, name: 'Tokyo, Japan' },
-          { id: 4, name: 'Sydney, Australia' },
-          { id: 5, name: 'Paris, France' }
-        ].filter(item => item.name.toLowerCase().includes(query.toLowerCase())));
+        const results = await searchLocations(debouncedQuery);
+        setSuggestions(results || []);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         setSuggestions([]);
+      } finally {
+        setIsSearching(false);
       }
     };
 
     const debounceTimer = setTimeout(fetchSuggestions, 500);
     return () => clearTimeout(debounceTimer);
-  }, [query]);
+  }, [debouncedQuery]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -67,6 +73,13 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
     setShowHistory(false);
   };
 
+  const handleBlur = () => {
+    setTimeout(() => {
+      setShowSuggestions(false);
+      setShowHistory(false);
+    }, 200);
+  }
+
   return (
     <div className="search-bar-container">
       <form onSubmit={handleSubmit} className="search-form">
@@ -74,15 +87,18 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
           <input
             type="text"
             value={query}
+            onBlur={handleBlur}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
               setShowSuggestions(true);
-              setShowHistory(searchHistory.length > 0);
+              setShowHistory(query.length < 3 && searchHistory.length > 0);
             }}
             placeholder="Search for a city or zip code..."
             className="search-input"
+            aria-label="Search for location"
+            aria-autocomplete="list"
           />
-          <button type="submit" className="search-button">
+          <button type="submit" className="search-button" aria-label="Search button">
             Search
           </button>
         </div>
@@ -90,13 +106,24 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
         {/* Suggestions dropdown */}
         {showSuggestions && suggestions.length > 0 && (
           <ul className="suggestions-list">
-            {suggestions.map((suggestion) => (
+
+            {showSuggestions && query.length >= 3 && suggestions.length === 0 && (
+              <div className="suggestion-item no-results" role="option" aria-label="No results found">No locations found for {query}</div>
+            )}
+
+            {isSearching && (
+              <div className="suggestion-item search-status" role="option" aria-label="Searching locations">Searching locations...</div>
+            )}
+
+            {suggestions.map((suggestion, idx) => (
               <li
-                key={suggestion.id}
+                key={suggestion.id || idx}
                 onClick={() => handleSuggestionClick(suggestion.name)}
                 className="suggestion-item"
+                role="option"
+                aria-label={`Search suggestion for ${suggestion.name}`}
               >
-                {suggestion.name}
+                {suggestion.name}, {suggestion.country}
               </li>
             ))}
           </ul>
@@ -107,11 +134,13 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
           <div className="search-history">
             <h4>Recent Searches</h4>
             <ul className="history-list">
-              {searchHistory.map((item, index) => (
+              {searchHistory.map((item, idx) => (
                 <li
-                  key={index}
+                  key={idx}
                   onClick={() => handleHistoryClick(item.query)}
                   className="history-item"
+                  role="option"
+                  aria-label={`Search history item for ${item.query}`}
                 >
                   {item.query}
                 </li>

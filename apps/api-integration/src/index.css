@@ -69,6 +69,7 @@ button:focus-visible {
 .search-bar-container {
   margin-bottom: 2rem;
   position: relative;
+  width: 100%;
 }
 
 .search-form {
@@ -186,6 +187,7 @@ button:focus-visible {
 .condition {
   font-size: 1.2rem;
   color: #333;
+  text-transform: capitalize;
 }
 
 .weather-details {
@@ -465,6 +467,7 @@ button:focus-visible {
   color: #666;
   padding: 2rem 0;
 }
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

@@ -1,4 +1,4 @@
-import { WeatherData } from '../App';
+import { WeatherData } from '../services/weatherApi';
 
 interface WeatherAlertsProps {
   weatherData: WeatherData;

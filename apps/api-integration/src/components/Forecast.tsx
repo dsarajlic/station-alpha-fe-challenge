@@ -1,11 +1,10 @@
-import { WeatherData } from '../App';
+import { WeatherData } from '../services/weatherApi';
 
 interface ForecastProps {
   weatherData: WeatherData;
 }
 
 const Forecast = ({ weatherData }: ForecastProps) => {
-  // Check if forecast data exists
   if (!weatherData.forecast || !weatherData.forecast.forecastday) {
     return (
       <div className="forecast-container">

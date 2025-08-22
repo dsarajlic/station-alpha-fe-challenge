@@ -1,55 +1,16 @@
 import { useState } from 'react'
 import './App.css'
-
-// Types for weather data
-export interface WeatherData {
-  location: {
-    name: string;
-    country: string;
-    lat: number;
-    lon: number;
-  };
-  current: {
-    temp_c: number;
-    temp_f: number;
-    condition: {
-      text: string;
-      icon: string;
-      code: number;
-    };
-    wind_kph: number;
-    wind_dir: string;
-    humidity: number;
-    feelslike_c: number;
-    feelslike_f: number;
-    uv: number;
-  };
-  forecast?: {
-    forecastday: Array<{
-      date: string;
-      day: {
-        maxtemp_c: number;
-        mintemp_c: number;
-        condition: {
-          text: string;
-          icon: string;
-        };
-        daily_chance_of_rain: number;
-      };
-    }>;
-  };
-  alerts?: {
-    alert: Array<{
-      headline: string;
-      severity: string;
-      urgency: string;
-      areas: string;
-      desc: string;
-      effective: string;
-      expires: string;
-    }>;
-  };
-}
+import CurrentWeather from './components/CurrentWeather';
+import Forecast from './components/Forecast';
+import WeatherAlerts from './components/WeatherAlerts';
+import WeatherMap from './components/WeatherMap';
+import SearchBar from './components/SearchBar';
+import {
+  WeatherData,
+  getCurrentWeather,
+  getWeatherForecast,
+  getWeatherAlerts,
+} from './services/weatherApi';
 
 // Type for search history
 export interface SearchHistoryItem {
@@ -58,17 +19,88 @@ export interface SearchHistoryItem {
 }
 
 function App() {
-  // Weather data state
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  // Loading state
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // Error state
   const [error, setError] = useState<string | null>(null);
-  // Search query state
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  // Search history
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
-  
+
+  const handleSearch = async (location: string) => {
+    if (location.trim() === "") return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Get both current weather and forecast
+      const [currentData, forecastData, alertsData] = await Promise.all([
+        getCurrentWeather(location),
+        getWeatherForecast(location),
+        getWeatherAlerts(location)
+      ]);
+
+      const combinedData = {
+        ...currentData,
+        forecast: forecastData.forecast,
+        alerts: alertsData.alerts
+      };
+
+      setWeatherData(combinedData);
+
+      const newHistoryItem: SearchHistoryItem = {
+        query: location,
+        timestamp: Date.now()
+      };
+
+      setSearchHistory([...searchHistory, newHistoryItem]);
+    } catch (err) {
+      console.error('Error fetching weather data:', err);
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLocationSelect = async (lat: number, lon: number, locationName?: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Use coordinates for API call
+      const location = `${lat},${lon}`;
+      const data = await getCurrentWeather(location);
+      setWeatherData(data);
+
+      // Use the actual location name from the API response, not coordinates
+      const displayName = data.location.name && data.location.country
+        ? `${data.location.name}, ${data.location.country}`
+        : locationName || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+
+      const newHistoryItem: SearchHistoryItem = {
+        query: displayName, // Use readable name instead of coordinates
+        timestamp: Date.now()
+      };
+
+      setSearchHistory([newHistoryItem, ...searchHistory.slice(0, 9)]);
+    } catch (err) {
+      console.error('Error fetching weather data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const addToSearchHistory = (query: string) => {
+    const newHistoryItem: SearchHistoryItem = {
+      query,
+      timestamp: Date.now()
+    };
+
+    // Avoid duplicates and keep only the last 10 searches
+    const filteredHistory = searchHistory.filter(item => item.query !== query);
+    setSearchHistory([newHistoryItem, ...filteredHistory.slice(0, 9)]);
+  };
+
   return (
     <div className="weather-app">
       <header className="app-header">
@@ -122,54 +154,41 @@ function App() {
 
         <section className="implementation-area">
           <h2>Your Implementation</h2>
-          
+
           {/* Search Component Placeholder */}
           <div className="search-container">
-            <input 
-              type="text" 
-              placeholder="Search for a city..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            <SearchBar
+              onSearch={handleSearch}
+              searchHistory={searchHistory}
+              addToSearchHistory={addToSearchHistory}
             />
-            <button>Search</button>
           </div>
 
           {/* Weather Display Placeholders */}
           <div className="weather-display">
             {isLoading && <div className="loading">Loading weather data...</div>}
-            
+
             {error && <div className="error-message">{error}</div>}
-            
+
             {!isLoading && !error && !weatherData && (
               <div className="no-data">
                 Search for a location to see weather information
               </div>
             )}
-            
+
             {weatherData && (
               <div className="weather-content">
-                {/* Current Weather Placeholder */}
                 <div className="current-weather">
-                  <h3>Current Weather Placeholder</h3>
-                  <p>Implement the current weather display here</p>
+                  <CurrentWeather weatherData={weatherData} />
                 </div>
-                
-                {/* Forecast Placeholder */}
                 <div className="forecast">
-                  <h3>Forecast Placeholder</h3>
-                  <p>Implement the 5-day forecast here</p>
+                  <Forecast weatherData={weatherData} />
                 </div>
-                
-                {/* Weather Map Placeholder */}
                 <div className="weather-map">
-                  <h3>Weather Map Placeholder</h3>
-                  <p>Implement the weather map here</p>
+                  <WeatherMap weatherData={weatherData} onLocationSelect={handleLocationSelect} />
                 </div>
-                
-                {/* Alerts Placeholder */}
                 <div className="weather-alerts">
-                  <h3>Weather Alerts Placeholder</h3>
-                  <p>Implement weather alerts here</p>
+                  <WeatherAlerts weatherData={weatherData} />
                 </div>
               </div>
             )}
