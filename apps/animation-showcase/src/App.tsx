@@ -1,6 +1,9 @@
 import React from 'react';
 import './App.css';
 import ButtonRequirement from './components/ButtonRequirement';
+import AnimatedButton from './components/AnimatedButton/AnimatedButton';
+import PlaneIcon from './components/AnimatedButton/icons/PlaneIcon';
+import TickIcon from './components/AnimatedButton/icons/TickIcon';
 
 const App: React.FC = () => {
 
@@ -16,7 +19,6 @@ const App: React.FC = () => {
           <p>
             Create a reusable button component that replicates the animation shown in the example.
           </p>
-          
         </section>
 
         <section className="examples-section">
@@ -28,8 +30,11 @@ const App: React.FC = () => {
           <h2>Your Solution</h2>
           <p>Implement your animated button component and showcase it below:</p>
           <div className="solution-demo">
-            {/* Replace this comment with your AnimatedButton component */}
-            <div className="placeholder-button">Your button will go here</div>
+            <AnimatedButton
+              size="medium"
+              loadingIcon={<PlaneIcon size={20} />}
+              successIcon={<TickIcon size={20} />}
+            />
           </div>
         </section>
       </main>
